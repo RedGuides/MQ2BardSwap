@@ -144,12 +144,11 @@ class MQ2BardSwapType : public MQ2Type
 public:
    enum BardSwapMembers
    {
-      Swapping=1,
-      Excluded=2,
-      MeleeSwap=3,
-      Delay=4,
-      Casting=5,
-      CurrentSwap=6,
+      Swapping,
+      Excluded,
+      MeleeSwap,
+      Delay,
+      CurrentSwap,
    };
 
    MQ2BardSwapType():MQ2Type("swap")
@@ -158,7 +157,6 @@ public:
       TypeMember(Excluded);
       TypeMember(MeleeSwap);
       TypeMember(Delay);
-      TypeMember(Casting);
       TypeMember(CurrentSwap);
    }
    ~MQ2BardSwapType()
@@ -186,12 +184,6 @@ public:
          case Delay:
             Dest.Int=MeleeDelay;
             Dest.Type=mq::datatypes::pIntType;
-            return true;
-         case Casting:
-            sprintf_s(DataTypeTemp,"${If[${Twist.Current}>0,${Me.Gem[${Twist.Current}].Name},${Me.Casting.Name}]}");
-            ParseMacroParameter(GetCharInfo()->pSpawn,DataTypeTemp);
-            Dest.Ptr=DataTypeTemp;
-            Dest.Type=mq::datatypes::pStringType;
             return true;
          case CurrentSwap:
             strcpy_s(DataTypeTemp, InstrumentList[iCurrentSwap]);
@@ -228,7 +220,7 @@ bool dataBardSwap(const char* szName, MQTypeVar &Dest)
    return true;
 }
 
-PLUGIN_API VOID InitializePlugin()
+PLUGIN_API void InitializePlugin()
 {
    DebugSpewAlways("Initializing MQ2BardSwap");
    AddCommand("/bardswap",BardSwapCommand);
@@ -238,7 +230,7 @@ PLUGIN_API VOID InitializePlugin()
 
 }
 
-PLUGIN_API VOID ShutdownPlugin()
+PLUGIN_API void ShutdownPlugin()
 {
    DebugSpewAlways("Shutting down MQ2BardSwap");
    RemoveCommand("/bardswap");
@@ -247,27 +239,18 @@ PLUGIN_API VOID ShutdownPlugin()
    delete pBardSwapType;
 }
 
-PLUGIN_API VOID OnPulse()
+PLUGIN_API void OnPulse()
 {
    if (!bSwapEnabled || gGameState!=GAMESTATE_INGAME || GetCharInfo()->standstate!=STANDSTATE_STAND) return;
 
-   char szTemp[MAX_STRING];
    PSPELL pCurrentSong;
    PCHARINFO pCharInfo = GetCharInfo();
-   auto pCharInfo2 = GetPcProfile();
-   int CurrentSongNumber = 0;
 
-   if (FindMQ2Data("Twist")) { // Twist plugin not loaded
-      sprintf_s(szTemp,"${Twist.Current}");
-      ParseMacroData(szTemp, sizeof(szTemp));
-      CurrentSongNumber = GetIntFromString(szTemp, 0);
-   }
-   pCurrentSong=GetSpellByID(CurrentSongNumber>0?pCharInfo2->MemorizedSpells[CurrentSongNumber-1]:pCharInfo->pSpawn->CastingData.SpellID);
+   pCurrentSong=GetSpellByID(pCharInfo->pSpawn->CastingData.SpellID);
    if (pCurrentSong!=pOldSong) {
       // Swap in weapons if not already held
       if (bMeleeSwap && iCurrentSwap!=5) {
-         strcpy_s(szTemp,InstrumentSettings[5].Command);
-         HideDoCommand(pCharInfo->pSpawn, szTemp, FromPlugin);
+         EzCommand(InstrumentSettings[5].Command);
          iCurrentSwap=SwapTo=5;
       }
       bExcluded=false;
@@ -295,8 +278,7 @@ PLUGIN_API VOID OnPulse()
    }
 
    if (DelayCounter<=::GetTickCount64() && SwapTo!=iCurrentSwap) {
-      strcpy_s(szTemp,InstrumentSettings[SwapTo].Command);
-      HideDoCommand(pCharInfo->pSpawn, szTemp, FromPlugin);
+      EzCommand(InstrumentSettings[SwapTo].Command);
       DelayCounter=0;
       iCurrentSwap=SwapTo;
    }
