@@ -7,7 +7,7 @@
 //   11/09/2009 - Change CastingSpellID to CastingData.SpellID
 //
 
-#include "../MQ2Plugin.h"
+#include <mq/Plugin.h>
 
 PreSetup("MQ2BardSwap");
 PLUGIN_VERSION(2009.1109);
@@ -61,7 +61,7 @@ VOID ClearExcluded()
       delete pExcluded;
       pExcluded=pNext;
    }
-}   
+}
 
 VOID AddElement(PCHAR szLine)
 {
@@ -119,7 +119,7 @@ VOID BardSwapCommand(PSPAWNINFO pChar, PCHAR szLine)
          return;
       }
       if (GetCharInfo()) {
-         sprintf_s(INIFileName,"%s\\MQ2BardSwap_%s_%s.ini",gszINIPath,GetCharInfo()->Name,EQADDR_SERVERNAME);
+         sprintf_s(INIFileName,"%s\\MQ2BardSwap_%s_%s.ini", gPathConfig, GetCharInfo()->Name, EQADDR_SERVERNAME);
          LoadINI();
       }
       WriteChatColor("MQ2BardSwap::Swapping ON");
@@ -145,11 +145,11 @@ public:
    enum BardSwapMembers
    {
       Swapping=1,
-     Excluded=2,
-     MeleeSwap=3,
-     Delay=4,
+      Excluded=2,
+      MeleeSwap=3,
+      Delay=4,
       Casting=5,
-     CurrentSwap=6,
+      CurrentSwap=6,
    };
 
    MQ2BardSwapType():MQ2Type("swap")
@@ -165,70 +165,70 @@ public:
    {
    }
 
-   bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+   virtual bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar &Dest) override
    {
-      PMQ2TYPEMEMBER pMember=MQ2BardSwapType::FindMember(Member);
+      MQTypeMember* pMember=MQ2BardSwapType::FindMember(Member);
       if (!pMember)
          return false;
       switch((BardSwapMembers)pMember->ID) {
          case Swapping:
             Dest.DWord=bSwapEnabled;
-            Dest.Type=pBoolType;
+            Dest.Type=mq::datatypes::pBoolType;
             return true;
          case Excluded:
             Dest.DWord=bExcluded;
-            Dest.Type=pBoolType;
+            Dest.Type=mq::datatypes::pBoolType;
             return true;
          case MeleeSwap:
             Dest.DWord=bMeleeSwap;
-            Dest.Type=pBoolType;
+            Dest.Type=mq::datatypes::pBoolType;
             return true;
          case Delay:
             Dest.Int=MeleeDelay;
-            Dest.Type=pIntType;
+            Dest.Type=mq::datatypes::pIntType;
             return true;
          case Casting:
             sprintf_s(DataTypeTemp,"${If[${Twist.Current}>0,${Me.Gem[${Twist.Current}].Name},${Me.Casting.Name}]}");
             ParseMacroParameter(GetCharInfo()->pSpawn,DataTypeTemp);
             Dest.Ptr=DataTypeTemp;
-            Dest.Type=pStringType;
+            Dest.Type=mq::datatypes::pStringType;
             return true;
          case CurrentSwap:
             strcpy_s(DataTypeTemp, InstrumentList[iCurrentSwap]);
             Dest.Ptr=DataTypeTemp;
-            Dest.Type=pStringType;
+            Dest.Type=mq::datatypes::pStringType;
             return true;
       }
       return false;
    }
 
-   bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+   bool ToString(MQVarPtr VarPtr, PCHAR Destination)
    {
-	   if (bSwapEnabled)
-		   strcpy_s(Destination, MAX_STRING, "TRUE");
-	   else
-		   strcpy_s(Destination, MAX_STRING, "FALSE");
+      if (bSwapEnabled)
+         strcpy_s(Destination, MAX_STRING, "TRUE");
+      else
+         strcpy_s(Destination, MAX_STRING, "FALSE");
       return true;
    }
 
-   bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+   bool FromData(MQVarPtr &VarPtr, MQTypeVar &Source)
    {
       return false;
    }
-   bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+   virtual bool FromString(MQVarPtr &VarPtr, const char* Source) override
    {
       return false;
    }
 };
 
-BOOL dataBardSwap(PCHAR szName, MQ2TYPEVAR &Dest)
+bool dataBardSwap(const char* szName, MQTypeVar &Dest)
 {
    Dest.DWord=1;
    Dest.Type=pBardSwapType;
    return true;
 }
 
-PLUGIN_API VOID InitializePlugin(VOID)
+PLUGIN_API VOID InitializePlugin()
 {
    DebugSpewAlways("Initializing MQ2BardSwap");
    AddCommand("/bardswap",BardSwapCommand);
@@ -238,7 +238,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 
 }
 
-PLUGIN_API VOID ShutdownPlugin(VOID)
+PLUGIN_API VOID ShutdownPlugin()
 {
    DebugSpewAlways("Shutting down MQ2BardSwap");
    RemoveCommand("/bardswap");
@@ -247,20 +247,20 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
    delete pBardSwapType;
 }
 
-PLUGIN_API VOID OnPulse(VOID)
+PLUGIN_API VOID OnPulse()
 {
-   if (!bSwapEnabled || MQ2Globals::gGameState!=GAMESTATE_INGAME || GetCharInfo()->standstate!=STANDSTATE_STAND) return;
+   if (!bSwapEnabled || gGameState!=GAMESTATE_INGAME || GetCharInfo()->standstate!=STANDSTATE_STAND) return;
 
    char szTemp[MAX_STRING];
-    PSPELL pCurrentSong;
+   PSPELL pCurrentSong;
    PCHARINFO pCharInfo = GetCharInfo();
-   PCHARINFO2 pCharInfo2 = GetCharInfo2();
+   auto pCharInfo2 = GetPcProfile();
    int CurrentSongNumber = 0;
 
    if (FindMQ2Data("Twist")) { // Twist plugin not loaded
       sprintf_s(szTemp,"${Twist.Current}");
-	  ParseMacroData(szTemp, sizeof(szTemp));
-      CurrentSongNumber = atoi(szTemp);
+      ParseMacroData(szTemp, sizeof(szTemp));
+      CurrentSongNumber = GetIntFromString(szTemp, 0);
    }
    pCurrentSong=GetSpellByID(CurrentSongNumber>0?pCharInfo2->MemorizedSpells[CurrentSongNumber-1]:pCharInfo->pSpawn->CastingData.SpellID);
    if (pCurrentSong!=pOldSong) {
@@ -272,7 +272,7 @@ PLUGIN_API VOID OnPulse(VOID)
       }
       bExcluded=false;
       pOldSong=pCurrentSong;
-        for (int i=0;SongSkills[i]!=NULL;i++) {
+         for (int i=0;SongSkills[i]!=NULL;i++) {
          if (!pCurrentSong) break;
          if (!strcmp(szSkills[pCurrentSong->Skill],SongSkills[i])) {
             if (ExcludeCount){
@@ -287,14 +287,14 @@ PLUGIN_API VOID OnPulse(VOID)
             }
             if (InstrumentSettings[i].Enabled && !bExcluded) {
                SwapTo=i;
-               DelayCounter=GetTickCount642()+((bMeleeSwap?MeleeDelay:0)*100);
+               DelayCounter=GetTickCount64()+((bMeleeSwap?MeleeDelay:0)*100);
             } else if (bMeleeSwap) SwapTo=5;
             break;
          }
       }
    }
-   
-   if (DelayCounter<=::GetTickCount642() && SwapTo!=iCurrentSwap) {
+
+   if (DelayCounter<=::GetTickCount64() && SwapTo!=iCurrentSwap) {
       strcpy_s(szTemp,InstrumentSettings[SwapTo].Command);
       HideDoCommand(pCharInfo->pSpawn, szTemp, FromPlugin);
       DelayCounter=0;
@@ -302,9 +302,3 @@ PLUGIN_API VOID OnPulse(VOID)
    }
 
 }
-
-/* PLUGIN_API DWORD OnIncomingChat(PCHAR Line, DWORD Color)
-{
-DebugSpewAlways("MQ2BardSwap::OnIncomingChat(%s)",Line);
-return 0;
-}*/ 
