@@ -159,9 +159,6 @@ public:
       TypeMember(Delay);
       TypeMember(CurrentSwap);
    }
-   ~MQ2BardSwapType()
-   {
-   }
 
    virtual bool GetMember(MQVarPtr VarPtr, const char* Member, char* Index, MQTypeVar &Dest) override
    {
@@ -194,22 +191,13 @@ public:
       return false;
    }
 
-   bool ToString(MQVarPtr VarPtr, PCHAR Destination)
+   bool ToString(MQVarPtr VarPtr, PCHAR Destination) override
    {
       if (bSwapEnabled)
          strcpy_s(Destination, MAX_STRING, "TRUE");
       else
          strcpy_s(Destination, MAX_STRING, "FALSE");
       return true;
-   }
-
-   bool FromData(MQVarPtr &VarPtr, MQTypeVar &Source)
-   {
-      return false;
-   }
-   virtual bool FromString(MQVarPtr &VarPtr, const char* Source) override
-   {
-      return false;
    }
 };
 
