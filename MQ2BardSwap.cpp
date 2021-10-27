@@ -13,34 +13,34 @@ PreSetup("MQ2BardSwap");
 PLUGIN_VERSION(2009.1109);
 
 typedef struct _EXCLUDED {
-   CHAR Song[MAX_STRING];
-   struct _EXCLUDED *pNext;
+	CHAR Song[MAX_STRING];
+	struct _EXCLUDED *pNext;
 } EXCLUDED, *PEXCLUDED;
 
 PEXCLUDED pExcluded = 0;
 
 PCHAR SongSkills[] = {
-   "Brass Instruments",
-   "Percussion Instruments",
-   "Stringed Instruments",
-   "Wind Instruments",
-   "Sing",
-   NULL
+	"Brass Instruments",
+	"Percussion Instruments",
+	"Stringed Instruments",
+	"Wind Instruments",
+	"Sing",
+	NULL
 };
 
 PCHAR InstrumentList[] = {
-   "Horn",
-   "Drum",
-   "Lute",
-   "Wind",
-   "Singing",
-   "Weapons",
-   NULL
+	"Horn",
+	"Drum",
+	"Lute",
+	"Wind",
+	"Singing",
+	"Weapons",
+	NULL
 };
 
 struct _data {
-   char Command[MAX_STRING];
-   bool Enabled;
+	char Command[MAX_STRING];
+	bool Enabled;
 } InstrumentSettings[6];
 
 bool bMeleeSwap = false;
@@ -55,21 +55,21 @@ PSPELL pOldSong = 0;
 
 VOID ClearExcluded()
 {
-   while(pExcluded)
-   {
-      PEXCLUDED pNext=pExcluded->pNext;
-      delete pExcluded;
-      pExcluded=pNext;
-   }
+	while(pExcluded)
+	{
+		PEXCLUDED pNext=pExcluded->pNext;
+		delete pExcluded;
+		pExcluded=pNext;
+	}
 }
 
 VOID AddElement(PCHAR szLine)
 {
-   PEXCLUDED pElement=new EXCLUDED;
-   pElement->pNext=pExcluded;
-   pExcluded=pElement;
-   strcpy_s(pElement->Song,szLine);
-   DebugSpew("New element '%s'",pElement->Song);
+	PEXCLUDED pElement=new EXCLUDED;
+	pElement->pNext=pExcluded;
+	pExcluded=pElement;
+	strcpy_s(pElement->Song,szLine);
+	DebugSpew("New element '%s'",pElement->Song);
 }
 
 VOID LoadINI()
@@ -110,31 +110,30 @@ VOID LoadINI()
 
 VOID BardSwapCommand(PSPAWNINFO pChar, PCHAR szLine)
 {
-   char szTemp[MAX_STRING];
-   GetArg(szTemp,szLine,1);
-   if (!strlen(szTemp)) {
-      if (bSwapEnabled) {
-         WriteChatColor("MQ2BardSwap::Swapping OFF");
-         bSwapEnabled=false;
-         return;
-      }
-      if (GetCharInfo()) {
-         sprintf_s(INIFileName,"%s\\MQ2BardSwap_%s_%s.ini", gPathConfig, GetCharInfo()->Name, EQADDR_SERVERNAME);
-         LoadINI();
-      }
-      WriteChatColor("MQ2BardSwap::Swapping ON");
-      bSwapEnabled=true;
-   }
-   if(!_strnicmp(szTemp,"melee",5)) {
-      if (bMeleeSwap) {
-         WriteChatColor("MQ2BardSwap::Melee-Swapping OFF");
-         bMeleeSwap=false;
-         return;
-      }
-      WriteChatColor("MQ2BardSwap::Melee-Swapping ON");
-      bMeleeSwap=true;
-      return;
-   }
+	char szTemp[MAX_STRING];
+	GetArg(szTemp,szLine,1);
+	if (!strlen(szTemp)) {
+		if (bSwapEnabled) {
+			WriteChatColor("MQ2BardSwap::Swapping OFF");
+			bSwapEnabled=false;
+			return;
+		}
+		if (GetCharInfo()) {
+			sprintf_s(INIFileName,"%s\\MQ2BardSwap_%s_%s.ini", gPathConfig, GetCharInfo()->Name, EQADDR_SERVERNAME);
+			LoadINI();
+		}
+		WriteChatColor("MQ2BardSwap::Swapping ON");
+		bSwapEnabled=true;
+	}
+	if(!_strnicmp(szTemp,"melee",5)) {
+		if (bMeleeSwap) {
+			WriteChatColor("MQ2BardSwap::Melee-Swapping OFF");
+			bMeleeSwap=false;
+			return;
+		}
+		WriteChatColor("MQ2BardSwap::Melee-Swapping ON");
+		bMeleeSwap=true;
+	}
 }
 
 class MQ2BardSwapType *pBardSwapType=0;
@@ -142,14 +141,14 @@ class MQ2BardSwapType *pBardSwapType=0;
 class MQ2BardSwapType : public MQ2Type
 {
 public:
-   enum BardSwapMembers
-   {
-      Swapping,
-      Excluded,
-      MeleeSwap,
-      Delay,
-      CurrentSwap,
-   };
+	enum BardSwapMembers
+	{
+		Swapping,
+		Excluded,
+		MeleeSwap,
+		Delay,
+		CurrentSwap,
+	};
 
    MQ2BardSwapType():MQ2Type("swap")
    {
@@ -229,46 +228,47 @@ PLUGIN_API void ShutdownPlugin()
 
 PLUGIN_API void OnPulse()
 {
-   if (!bSwapEnabled || gGameState!=GAMESTATE_INGAME || GetCharInfo()->standstate!=STANDSTATE_STAND) return;
+	if (!bSwapEnabled || GetGameState() !=GAMESTATE_INGAME || GetCharInfo()->standstate != STANDSTATE_STAND)
+		return;
 
-   PSPELL pCurrentSong;
-   PCHARINFO pCharInfo = GetCharInfo();
+	PSPELL pCurrentSong;
+	PCHARINFO pCharInfo = GetCharInfo();
 
-   pCurrentSong=GetSpellByID(pCharInfo->pSpawn->CastingData.SpellID);
-   if (pCurrentSong!=pOldSong) {
-      // Swap in weapons if not already held
-      if (bMeleeSwap && iCurrentSwap!=5) {
-         EzCommand(InstrumentSettings[5].Command);
-         iCurrentSwap=SwapTo=5;
-      }
-      bExcluded=false;
-      pOldSong=pCurrentSong;
-         for (int i=0;SongSkills[i]!=NULL;i++) {
-         if (!pCurrentSong) break;
-         if (!strcmp(szSkills[pCurrentSong->Skill],SongSkills[i])) {
-            if (ExcludeCount){
-               PEXCLUDED pElement=pExcluded;
-               for (int j=0;j<ExcludeCount;j++) {
-                  if (!strcmp(pCurrentSong->Name,pElement->Song)) {
-                     bExcluded=true;
-                     break;
-                  }
-                  pElement=pElement->pNext;
-               }
-            }
-            if (InstrumentSettings[i].Enabled && !bExcluded) {
-               SwapTo=i;
-               DelayCounter=GetTickCount64()+((bMeleeSwap?MeleeDelay:0)*100);
-            } else if (bMeleeSwap) SwapTo=5;
-            break;
-         }
-      }
-   }
+	pCurrentSong=GetSpellByID(pCharInfo->pSpawn->CastingData.SpellID);
+	if (pCurrentSong!=pOldSong) {
+		// Swap in weapons if not already held
+		if (bMeleeSwap && iCurrentSwap!=5) {
+			EzCommand(InstrumentSettings[5].Command);
+			iCurrentSwap=SwapTo=5;
+		}
+		bExcluded=false;
+		pOldSong=pCurrentSong;
+		for (int i=0;SongSkills[i]!=NULL;i++) {
+			if (!pCurrentSong)
+				break;
+			if (!strcmp(szSkills[pCurrentSong->Skill],SongSkills[i])) {
+				if (ExcludeCount){
+					PEXCLUDED pElement=pExcluded;
+					for (int j=0;j<ExcludeCount;j++) {
+						if (!strcmp(pCurrentSong->Name,pElement->Song)) {
+							bExcluded=true;
+							break;
+						}
+						pElement=pElement->pNext;
+					}
+				}
+				if (InstrumentSettings[i].Enabled && !bExcluded) {
+					SwapTo=i;
+					DelayCounter=GetTickCount64()+((bMeleeSwap?MeleeDelay:0)*100);
+				} else if (bMeleeSwap) SwapTo=5;
+				break;
+			}
+		}
+	}
 
-   if (DelayCounter<=::GetTickCount64() && SwapTo!=iCurrentSwap) {
-      EzCommand(InstrumentSettings[SwapTo].Command);
-      DelayCounter=0;
-      iCurrentSwap=SwapTo;
-   }
-
+	if (DelayCounter<=::GetTickCount64() && SwapTo!=iCurrentSwap) {
+		EzCommand(InstrumentSettings[SwapTo].Command);
+		DelayCounter=0;
+		iCurrentSwap=SwapTo;
+	}
 }
