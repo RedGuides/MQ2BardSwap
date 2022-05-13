@@ -119,7 +119,7 @@ VOID BardSwapCommand(PSPAWNINFO pChar, PCHAR szLine)
 			return;
 		}
 		if (GetCharInfo()) {
-			sprintf_s(INIFileName,"%s\\MQ2BardSwap_%s_%s.ini", gPathConfig, GetCharInfo()->Name, EQADDR_SERVERNAME);
+			sprintf_s(INIFileName,"%s\\MQ2BardSwap_%s_%s.ini", gPathConfig, pLocalPC->Name, GetServerShortName());
 			LoadINI();
 		}
 		WriteChatColor("MQ2BardSwap::Swapping ON");
