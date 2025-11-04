@@ -19,23 +19,23 @@ typedef struct _EXCLUDED {
 
 PEXCLUDED pExcluded = 0;
 
-PCHAR SongSkills[] = {
+const char* SongSkills[] = {
 	"Brass Instruments",
 	"Percussion Instruments",
 	"Stringed Instruments",
 	"Wind Instruments",
 	"Sing",
-	NULL
+	nullptr
 };
 
-PCHAR InstrumentList[] = {
+const char* InstrumentList[] = {
 	"Horn",
 	"Drum",
 	"Lute",
 	"Wind",
 	"Singing",
 	"Weapons",
-	NULL
+	nullptr
 };
 
 struct _data {
