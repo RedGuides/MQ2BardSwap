@@ -24,7 +24,7 @@ const char* SongSkills[] = {
 	"Percussion Instruments",
 	"Stringed Instruments",
 	"Wind Instruments",
-	"Sing",
+	"Singing",
 	nullptr
 };
 
