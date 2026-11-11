@@ -10,9 +10,9 @@ Grants access to the "swap" datatype
 
 ## Forms
 <!--tlo-forms-start-->
-### {{ renderMember(type='bool', name='BardSwap') }}
-
-:   indicates whether mq2bardswap is enabled
+/// member | bool BardSwap
+indicates whether mq2bardswap is enabled
+///
 
 <!--tlo-forms-end-->
 

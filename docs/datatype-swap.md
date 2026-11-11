@@ -10,25 +10,25 @@ Gives the status of what MQ2BardSwap is doing, and setting information
 
 ## Members
 <!--dt-members-start-->
-### {{ renderMember(type='bool', name='Swapping') }}
+/// member | bool Swapping
+Returns true swapping is enabled
+///
 
-:   Returns true swapping is enabled
+/// member | bool Excluded
+Returns true if the song is excluded
+///
 
-### {{ renderMember(type='bool', name='Excluded') }}
+/// member | bool MeleeSwap
+returns true if meleeswap is enabled
+///
 
-:   Returns true if the song is excluded
+/// member | int Delay
+Returns the delay of melee swap
+///
 
-### {{ renderMember(type='bool', name='MeleeSwap') }}
-
-:   returns true if meleeswap is enabled
-
-### {{ renderMember(type='int', name='Delay') }}
-
-:   Returns the delay of melee swap
-
-### {{ renderMember(type='string', name='CurrentSwap') }}
-
-:   Returns the name of the instrument currently swapped
+/// member | string CurrentSwap
+Returns the name of the instrument currently swapped
+///
 
 <!--dt-members-end-->
 
